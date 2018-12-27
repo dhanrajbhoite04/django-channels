@@ -1,0 +1,48 @@
+<!-- templates/home.html -->
+<html>
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+
+<body>
+<h1>Hi {{ user.username }}!</h1>
+    <textarea id="chat-log" cols="100" rows="20"></textarea><br/>
+    <input id="websocket-subscribe" type="button" value="subscribe" onclick="subscribe()"/>
+    <input id="websocket-unsubscribe" type="button" value="UnSubscribe" onclick="UnSubscribe()"/>
+</body>
+<script>
+var chatSocket;
+function subscribe() {
+    chatSocket = new WebSocket(
+        'ws://' + window.location.host +
+        '/ws/offers/dhanraj/');
+
+     console.log(chatSocket);
+
+    chatSocket.onmessage = function(e) {
+        var data = JSON.parse(e.data);
+        var message = data['message'];
+        document.querySelector('#chat-log').value += (message + '\n');
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+}
+
+function UnSubscribe(){
+     if (chatSocket.readyState === WebSocket.OPEN) {
+        chatSocket.close();
+     };
+
+}
+</script>
+{% else %}
+  <p>You are not logged in</p>
+  <a href="{% url 'login' %}">login</a>
+{% endif %}
+{% endblock %}
+</html>
